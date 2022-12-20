@@ -1,10 +1,13 @@
 #include<iostream>
 #include<ostream>
+#include<fstream>
+
+using namespace std;
 
 template<typename T>
 class Vector
 {
-private:
+public:
 	T* data;
 	int capacity;
 	int count;
@@ -13,12 +16,12 @@ private:
 	void pushend(T element);
 	void pushbegin(T element);
 
-public:
+
 	Vector(int capacity = 10);
 	Vector(const Vector<T>& list);
 	~Vector();
 
-	int& operator[](int pos);
+	T& operator[](int pos);
 
 	Vector& operator=(const Vector<T>& list);
 	friend std::ostream& operator<<(std::ostream& stream, const Vector<T>& list)
@@ -130,7 +133,7 @@ void Vector<T>::pushbegin(T element)
 }
 
 template<typename T>
-int& Vector<T>::operator[](int pos)
+T& Vector<T>::operator[](int pos)
 {
 	return data[ind(pos)];
 }
@@ -149,20 +152,57 @@ Vector<T>& Vector<T>::operator=(const Vector<T>& list)
 	return *this;
 }
 
-using namespace std;
+template<typename T>
+void record(Vector<T>& v, string filename)
+{
+	ofstream f(filename);
+	int mem = 0;
+	mem = v.count * (sizeof(T));
+	f << v.count;
+	f.write(reinterpret_cast<char*>(v.data), mem);
+	f.close();
+}
+
+template<typename T>
+Vector<T> readfile(ifstream& f)
+{
+	int n = 0;
+	f >> n;
+	Vector<T> v(n);
+	int mem = 0;
+	mem = n * sizeof(T);
+	char* str = new char[mem];
+	f.read(str, mem);
+	v.count = n;
+	v.data = reinterpret_cast<T*>(str);
+	
+	f.close();
+	return v;
+}
 
 int main()
 {
-	Vector<int> list1;
-	Vector<int> list2;
-	for (int i = 0; i < 10; ++i)
-	{
-		list1[i] = i;
-		list2[i] = 9 - i;
-	}
+	
+	Vector<int> v1(4);
+	Vector<char> v2(3);
 
-	cout << list1 << endl;
-	list1 = list2;
-	cout << list1 << endl;
-	return 0;
+	for (int i = 0; i < 4; i++)
+		v1[i] = i * 10;
+
+	v2[0] = 'b';
+	v2[1] = 'o';
+	v2[2] = 'b';
+
+	record(v1, "input1.txt");
+	record(v2, "input2.txt");
+
+	ifstream f1("output1.txt");
+	ifstream f2("output2.txt");
+
+	cout << readfile<int>(f1) << endl;
+	cout << readfile<char>(f2) << endl;
+
+	f1.close();
+	f2.close();
+	return EXIT_SUCCESS;
 }
